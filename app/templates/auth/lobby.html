@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Registration Under Review{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+{% block public_content %}
+<div class="auth-page">
+    <div class="lobby-container">
+        <div class="lobby-card">
+            <div class="lobby-icon">
+                <div class="pulse-ring"></div>
+                <i class="ti ti-hourglass-high"></i>
+            </div>
+            <h1>Registration Under Review</h1>
+            <p class="lobby-subtitle">Your account is being reviewed by an administrator. You'll receive access once approved.</p>
+
+            <div class="lobby-info">
+                <div class="lobby-info-row">
+                    <span class="lobby-label">Name</span>
+                    <span class="lobby-value">{{ current_user.profile.full_name if current_user.profile else current_user.username }}</span>
+                </div>
+                <div class="lobby-info-row">
+                    <span class="lobby-label">Email</span>
+                    <span class="lobby-value">{{ current_user.email }}</span>
+                </div>
+                <div class="lobby-info-row">
+                    <span class="lobby-label">Role</span>
+                    <span class="lobby-value"><span class="badge role-badge-{{ current_user.role }}">{{ current_user.role }}</span></span>
+                </div>
+                {% if current_user.profile and current_user.profile.department %}
+                <div class="lobby-info-row">
+                    <span class="lobby-label">Department</span>
+                    <span class="lobby-value">{{ current_user.profile.department.name }}</span>
+                </div>
+                {% endif %}
+                <div class="lobby-info-row">
+                    <span class="lobby-label">Submitted</span>
+                    <span class="lobby-value">{{ current_user.created_at | to_ist }}</span>
+                </div>
+            </div>
+
+            <div class="lobby-status">
+                <div class="status-dot pending"></div>
+                <span>Pending Approval</span>
+            </div>
+
+            <p class="lobby-help">If this takes too long, please contact the administrator at <strong>admin@alumni.net</strong></p>
+
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="margin-top:16px;">
+                <i class="ti ti-logout"></i> Sign Out
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.lobby-container { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; background:linear-gradient(135deg,#f8f7ff 0%,#e8e4f8 50%,#dbeafe 100%); }
+.lobby-card { background:white; border-radius:20px; padding:3rem 2.5rem; max-width:520px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(91,75,212,0.12); }
+.lobby-icon { position:relative; width:80px; height:80px; margin:0 auto 1.5rem; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#EDE9FE,#C4B8F3); border-radius:50%; font-size:2rem; color:#5B4BD4; }
+.pulse-ring { position:absolute; inset:-8px; border-radius:50%; border:3px solid #C4B8F3; animation:pulse-ring 2s ease-out infinite; }
+@keyframes pulse-ring { 0% { transform:scale(1); opacity:0.6; } 100% { transform:scale(1.3); opacity:0; } }
+.lobby-card h1 { font-size:1.5rem; font-weight:700; color:#1a1a2e; margin-bottom:0.5rem; }
+.lobby-subtitle { color:#6b7280; font-size:0.9rem; margin-bottom:2rem; line-height:1.6; }
+.lobby-info { background:#f9fafb; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; text-align:left; }
+.lobby-info-row { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid #f0f0f0; }
+.lobby-info-row:last-child { border-bottom:none; }
+.lobby-label { font-size:0.8rem; color:#9ca3af; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+.lobby-value { font-size:0.9rem; color:#1a1a2e; font-weight:600; }
+.lobby-status { display:inline-flex; align-items:center; gap:8px; padding:8px 20px; background:#FEF3C7; border-radius:999px; font-size:0.85rem; font-weight:600; color:#92400E; }
+.status-dot { width:8px; height:8px; border-radius:50%; }
+.status-dot.pending { background:#F59E0B; animation:blink 1.5s infinite; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.lobby-help { font-size:0.8rem; color:#9ca3af; margin-top:1.25rem; line-height:1.5; }
+</style>
+{% endblock %}

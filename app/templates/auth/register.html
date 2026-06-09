@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+{% block public_content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="brand-logo">AN</div>
+                <h2>Join AlumniNet</h2>
+                <p>Build your professional network, get AI-powered resume insights, and discover career opportunities matched to your skills.</p>
+                <div class="auth-brand-stats">
+                    <div class="stat"><div class="stat-num">AI</div><div class="stat-lbl">Powered</div></div>
+                    <div class="stat"><div class="stat-num">24/7</div><div class="stat-lbl">Access</div></div>
+                    <div class="stat"><div class="stat-num">Free</div><div class="stat-lbl">Forever</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form-side">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="logo">AN</div>
+                    <h1>Create Account</h1>
+                    <p>Start connecting with your alumni network</p>
+                </div>
+                <form class="auth-form" method="POST">
+                    <div class="form-group"><label class="form-label" for="full_name">Full Name</label><input type="text" id="full_name" name="full_name" class="form-input" placeholder="John Doe" required></div>
+                    <div class="form-group"><label class="form-label" for="username">Username</label><input type="text" id="username" name="username" class="form-input" placeholder="johndoe" required></div>
+                    <div class="form-group"><label class="form-label" for="email">Email Address</label><input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required></div>
+                    <div class="form-group"><label class="form-label" for="phone">Phone Number</label><input type="tel" id="phone" name="phone" class="form-input" placeholder="+91 98765 43210"></div>
+                    <div class="form-group"><label class="form-label">Select your role</label>
+                        <div class="role-selector">
+                            <div class="role-option"><input type="radio" name="role" id="role-student" value="student" checked><label for="role-student"><span class="role-icon">🎓</span><span class="role-name">Student</span></label></div>
+                            <div class="role-option"><input type="radio" name="role" id="role-alumni" value="alumni"><label for="role-alumni"><span class="role-icon">🏢</span><span class="role-name">Alumni</span></label></div>
+                            <div class="role-option"><input type="radio" name="role" id="role-faculty" value="faculty"><label for="role-faculty"><span class="role-icon">📚</span><span class="role-name">Faculty</span></label></div>
+                        </div>
+                    </div>
+                    <div class="form-group"><label class="form-label" for="department_id">Department</label>
+                        <select id="department_id" name="department_id" class="form-input">
+                            <option value="">— Select Department —</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group"><label class="form-label" for="enrollment_number">Enrollment / Roll No.</label><input type="text" id="enrollment_number" name="enrollment_number" class="form-input" placeholder="e.g. 2022CSE001"></div>
+                        <div class="form-group"><label class="form-label" for="graduation_year">Graduation Year</label><input type="number" id="graduation_year" name="graduation_year" class="form-input" placeholder="2026" min="2000" max="2040"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label" for="password">Password</label><input type="password" id="password" name="password" class="form-input" placeholder="Min 6 characters" required minlength="6"></div>
+                    <div class="form-group"><label class="form-label" for="confirm_password">Confirm Password</label><input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Re-enter password" required></div>
+                    <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Create Account</button>
+                    <p style="font-size:0.75rem;color:#9ca3af;text-align:center;margin-top:12px;">Your account will be reviewed by an admin before activation.</p>
+                </form>
+                <div class="auth-footer">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

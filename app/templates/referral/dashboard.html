@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Referral Dashboard{% endblock %}
+{% block page_title %}Referral Dashboard{% endblock %}
+{% block page_subtitle %}Post jobs and manage candidates{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:var(--space-lg);"><div class="card-header"><h3 class="card-title"><i class="ti ti-plus" style="color:var(--accent);margin-right:8px;"></i>Post a Job Opening</h3></div>
+    <form id="job-form" onsubmit="event.preventDefault();postJob();">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);"><div class="form-group"><label class="form-label">Title</label><input type="text" id="job-title" class="form-input" required></div><div class="form-group"><label class="form-label">Company</label><input type="text" id="job-company" class="form-input" required></div></div>
+        <div class="form-group"><label class="form-label">Description</label><textarea id="job-desc" class="form-textarea" required></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);"><div class="form-group"><label class="form-label">Location</label><input type="text" id="job-location" class="form-input"></div><div class="form-group"><label class="form-label">Skills</label><input type="text" id="job-skills" class="form-input" placeholder="python, react, sql"></div></div>
+        <button type="submit" class="btn btn-primary"><i class="ti ti-send"></i> Post Job</button>
+    </form>
+</div>
+<div class="card"><h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-list" style="color:var(--accent);margin-right:8px;"></i>My Posted Jobs & Candidates</h3><div id="my-jobs-list"><div class="skeleton-card"><div class="skeleton skeleton-line long"></div></div></div></div>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/referral.js') }}"></script>{% endblock %}

@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Moderation{% endblock %}{% block page_title %}Content Moderation{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}<div class="card"><h3 class="card-title mb-3">Recent Posts</h3><div id="mod-posts"><div class="skeleton-card"><div class="skeleton skeleton-line long"></div></div></div></div>{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

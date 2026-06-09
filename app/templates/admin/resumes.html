@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Resumes{% endblock %}{% block page_title %}Resume Management{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}
+<div class="card"><table class="data-table"><thead><tr><th>User</th><th>File</th><th>Score</th><th>Status</th><th>Date</th></tr></thead><tbody id="resumes-tbody"></tbody></table><div class="pagination" id="resumes-pagination"></div></div>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script><script>loadAdminResumes();</script>{% endblock %}

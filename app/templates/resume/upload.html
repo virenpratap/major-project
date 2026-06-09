@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Resume{% endblock %}
+{% block page_title %}Resume Intelligence{% endblock %}
+{% block page_subtitle %}AI-powered resume analysis{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/resume.css') }}">{% endblock %}
+{% block content %}
+<div class="two-col">
+    <div>
+        <div class="card" style="margin-bottom:var(--space-lg);"><h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-upload" style="color:var(--accent);margin-right:6px;"></i>Upload Resume</h3>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="event.preventDefault();this.classList.remove('drag-over');handleDrop(event)">
+                <div class="upload-icon"><i class="ti ti-cloud-upload" style="font-size:3rem;color:var(--accent);"></i></div><h3>Drop your resume here</h3><p>Supports PDF, DOCX, TXT (max 16MB)</p>
+                <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.txt" onchange="uploadFile(this.files[0])">
+            </div>
+            <div id="upload-progress" style="display:none;margin-top:var(--space-md);"><div class="d-flex align-center justify-between mb-1"><span style="font-size:var(--font-size-sm);">Uploading...</span><span class="spinner"></span></div><div class="progress-bar"><div class="progress-fill" id="upload-bar" style="width:0%"></div></div></div>
+        </div>
+        <div class="card"><h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-files" style="color:var(--accent);margin-right:6px;"></i>My Resumes</h3>
+            <div class="resume-list" id="resume-list">{% for resume in resumes %}<div class="resume-item" onclick="window.location='/resume/analysis/{{ resume.id }}'"><div class="file-icon"><i class="ti ti-file-text" style="font-size:1.5rem;color:var(--accent);"></i></div><div class="file-info"><div class="file-name">{{ resume.filename }}</div><div class="file-date">{{ resume.created_at.strftime('%b %d, %Y') }} · <span class="status-{{ resume.status }}">{{ resume.status }}</span></div></div>{% if resume.status == 'completed' %}<div class="file-score {% if resume.score >= 70 %}text-success{% elif resume.score >= 40 %}text-warning{% else %}text-danger{% endif %}">{{ resume.score|int }}</div>{% elif resume.status == 'processing' %}<div class="spinner"></div>{% endif %}</div>{% endfor %}
+            {% if not resumes %}<div class="empty-state"><div class="empty-icon"><i class="ti ti-file-off"></i></div><h3>No resumes yet</h3><p>Upload your first resume to get AI-powered analysis</p></div>{% endif %}</div>
+        </div>
+    </div>
+    <div><div class="card"><h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-info-circle" style="color:var(--accent);margin-right:6px;"></i>How It Works</h3><div class="steps-list"><div class="step-item"><div class="step-num">1</div><div class="step-text">Upload your resume</div></div><div class="step-item"><div class="step-num">2</div><div class="step-text">Encrypted & stored securely</div></div><div class="step-item"><div class="step-num">3</div><div class="step-text">AI analyzes skills & ATS fit</div></div><div class="step-item"><div class="step-num">4</div><div class="step-text">Get score (0-100) + feedback</div></div><div class="step-item"><div class="step-num">5</div><div class="step-text">Improve your resume!</div></div></div></div></div>
+</div>
+<style>.steps-list{display:flex;flex-direction:column;gap:var(--space-md)}.step-item{display:flex;align-items:center;gap:var(--space-md)}.step-num{width:30px;height:30px;border-radius:var(--radius-full);background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:var(--font-size-sm);font-weight:700;flex-shrink:0}.step-text{font-size:var(--font-size-sm);color:var(--text-secondary)}</style>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/resume.js') }}"></script>{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Batch Management{% endblock %}
+{% block page_title %}Batch & Department Management{% endblock %}
+{% block page_subtitle %}Manage departments, batches, and bulk student operations{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}
+<div style="display:flex;gap:var(--space-md);margin-bottom:var(--space-lg);">
+    <button class="btn btn-primary" onclick="showCreateDeptModal()"><i class="ti ti-plus"></i> New Department</button>
+    <button class="btn btn-secondary" onclick="showCreateBatchModal()"><i class="ti ti-plus"></i> New Batch</button>
+</div>
+<div id="tree-container"><p style="color:var(--text-muted);">Loading...</p></div>
+
+<!-- Create Department Modal -->
+<div id="dept-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <h3><i class="ti ti-building" style="color:var(--accent);margin-right:8px;"></i>Create Department</h3>
+        <div class="form-group"><label class="form-label">Department Name</label><input type="text" id="dept-name" class="form-input" placeholder="Computer Science & Engineering"></div>
+        <div class="form-group"><label class="form-label">Code</label><input type="text" id="dept-code" class="form-input" placeholder="CSE" maxlength="10" style="text-transform:uppercase;"></div>
+        <div class="form-group"><label class="form-label">Description</label><textarea id="dept-desc" class="form-textarea" rows="2"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label class="form-label">HOD Name</label><input type="text" id="dept-hod" class="form-input"></div>
+            <div class="form-group"><label class="form-label">HOD Email</label><input type="email" id="dept-hod-email" class="form-input"></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-secondary" onclick="hideModal('dept-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createDepartment()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Batch Modal -->
+<div id="batch-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <h3><i class="ti ti-calendar" style="color:var(--accent);margin-right:8px;"></i>Create Batch</h3>
+        <div class="form-group"><label class="form-label">Department</label><select id="batch-dept" class="form-input"></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label class="form-label">Graduation Year</label><input type="number" id="batch-year" class="form-input" placeholder="2026" min="2020" max="2040"></div>
+            <div class="form-group"><label class="form-label">Section</label><input type="text" id="batch-section" class="form-input" placeholder="A (optional)"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Total Strength</label><input type="number" id="batch-strength" class="form-input" placeholder="60" min="0"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-secondary" onclick="hideModal('batch-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createBatch()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Passout Confirmation Modal -->
+<div id="passout-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="width:60px;height:60px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.5rem;color:#DC2626;"><i class="ti ti-alert-triangle"></i></div>
+            <h3>Confirm Batch Passout</h3>
+            <p style="color:var(--text-muted);font-size:var(--font-size-sm);margin-top:8px;" id="passout-msg">All students in this batch will be converted to alumni.</p>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="btn btn-secondary" onclick="hideModal('passout-modal')">Cancel</button>
+            <button class="btn btn-danger" id="passout-confirm-btn">Confirm Passout</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000; }
+.modal-card { background:white;border-radius:16px;padding:24px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+.dept-card { background:var(--bg-card);border:0.5px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:var(--space-md);overflow:hidden; }
+.dept-header { display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;transition:background 0.2s; }
+.dept-header:hover { background:var(--bg-hover); }
+.dept-header h3 { font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px; }
+.dept-header .code { font-size:var(--font-size-xs);background:var(--accent);color:white;padding:2px 8px;border-radius:4px;font-weight:600; }
+.dept-body { padding:0 20px 16px;display:none; }
+.dept-body.open { display:block; }
+.batch-row { display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-page);border-radius:var(--radius-sm);margin-bottom:8px; }
+.batch-info { display:flex;align-items:center;gap:12px; }
+.batch-year { font-weight:700;font-size:var(--font-size-lg);color:var(--accent); }
+.batch-meta { font-size:var(--font-size-xs);color:var(--text-muted); }
+.batch-actions { display:flex;gap:6px; }
+</style>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+let treeData = [];
+
+document.addEventListener('DOMContentLoaded', loadTree);
+
+async function loadTree() {
+    treeData = await api('/admin/api/tree');
+    if (!treeData) return;
+    renderTree();
+}
+
+function renderTree() {
+    const container = document.getElementById('tree-container');
+    if (!treeData.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="ti ti-building-community"></i></div><h3>No departments yet</h3><p>Create your first department to get started.</p></div>';
+        return;
+    }
+    container.innerHTML = treeData.map(dept => `
+        <div class="dept-card" data-dept-id="${dept.id}">
+            <div class="dept-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                <h3><span class="code">${dept.code}</span> ${dept.name}
+                    ${!dept.is_active ? '<span class="badge badge-danger" style="font-size:9px;">Disabled</span>' : ''}
+                </h3>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:var(--font-size-xs);color:var(--text-muted);">${dept.batches.length} batches</span>
+                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();toggleDept(${dept.id})">${dept.is_active ? 'Disable' : 'Enable'}</button>
+                    <i class="ti ti-chevron-down" style="color:var(--text-muted);"></i>
+                </div>
+            </div>
+            <div class="dept-body">
+                ${dept.head_name ? `<p style="font-size:var(--font-size-xs);color:var(--text-muted);margin-bottom:12px;">HOD: ${dept.head_name} ${dept.head_email ? '(' + dept.head_email + ')' : ''}</p>` : ''}
+                ${dept.batches.length ? dept.batches.map(b => `
+                    <div class="batch-row">
+                        <div class="batch-info">
+                            <div class="batch-year">${b.year}</div>
+                            <div>
+                                <div style="font-weight:600;font-size:var(--font-size-sm);">Batch ${b.year}${b.section ? ' - Section ' + b.section : ''}</div>
+                                <div class="batch-meta">${b.student_count} students · Strength: ${b.total_strength}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            ${b.is_passed_out ? '<span class="badge badge-success">Passed Out</span>' : ''}
+                            ${!b.is_active ? '<span class="badge badge-danger">Disabled</span>' : ''}
+                            <div class="batch-actions">
+                                <button class="btn btn-sm btn-secondary" onclick="toggleBatch(${b.id})">${b.is_active ? 'Disable' : 'Enable'}</button>
+                                ${!b.is_passed_out ? `<button class="btn btn-sm btn-danger" onclick="confirmPassout(${b.id}, ${b.year}, ${b.student_count})">Pass Out</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : '<p style="color:var(--text-muted);font-size:var(--font-size-sm);padding:12px;">No batches yet.</p>'}
+            </div>
+        </div>
+    `).join('');
+}
+
+function showCreateDeptModal() { document.getElementById('dept-modal').style.display = 'flex'; }
+function showCreateBatchModal() {
+    const select = document.getElementById('batch-dept');
+    select.innerHTML = treeData.map(d => `<option value="${d.id}">${d.name} (${d.code})</option>`).join('');
+    document.getElementById('batch-modal').style.display = 'flex';
+}
+function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+
+async function createDepartment() {
+    const data = await api('/admin/api/departments', {
+        method: 'POST',
+        body: JSON.stringify({
+            name: document.getElementById('dept-name').value,
+            code: document.getElementById('dept-code').value,
+            description: document.getElementById('dept-desc').value,
+            head_name: document.getElementById('dept-hod').value,
+            head_email: document.getElementById('dept-hod-email').value
+        })
+    });
+    if (data) { showToast(data.message, 'success'); hideModal('dept-modal'); loadTree(); }
+}
+
+async function createBatch() {
+    const data = await api('/admin/api/batches', {
+        method: 'POST',
+        body: JSON.stringify({
+            department_id: document.getElementById('batch-dept').value,
+            year: document.getElementById('batch-year').value,
+            section: document.getElementById('batch-section').value,
+            total_strength: document.getElementById('batch-strength').value || 0
+        })
+    });
+    if (data) { showToast(data.message, 'success'); hideModal('batch-modal'); loadTree(); }
+}
+
+async function toggleDept(id) {
+    const data = await api(`/admin/api/departments/${id}/toggle-active`, { method: 'POST' });
+    if (data) { showToast('Department updated', 'success'); loadTree(); }
+}
+
+async function toggleBatch(id) {
+    const data = await api(`/admin/api/batches/${id}/toggle-active`, { method: 'POST' });
+    if (data) { showToast('Batch updated', 'success'); loadTree(); }
+}
+
+function confirmPassout(batchId, year, count) {
+    document.getElementById('passout-msg').textContent = `${count} student(s) in Batch ${year} will be converted to alumni. This cannot be undone.`;
+    const btn = document.getElementById('passout-confirm-btn');
+    btn.onclick = async () => {
+        const data = await api(`/admin/api/batches/${batchId}/passout`, { method: 'POST' });
+        if (data) { showToast(data.message, 'success'); hideModal('passout-modal'); loadTree(); }
+    };
+    document.getElementById('passout-modal').style.display = 'flex';
+}
+</script>
+{% endblock %}

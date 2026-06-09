@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Driven Alumni Network & Career Intelligence Platform">
+    <title>{% block title %}AlumniNet{% endblock %} — Alumni Network</title>
+
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">AN</div>
+                    <span class="logo-text">AlumniNet</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-layout-dashboard"></i></span> Dashboard
+                    </a>
+                    <a href="{{ url_for('social.feed') }}" class="nav-link {% if request.endpoint == 'social.feed' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-rss"></i></span> Feed
+                    </a>
+                    <a href="{{ url_for('chat.inbox') }}" class="nav-link {% if request.endpoint == 'chat.inbox' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-message-2"></i></span> Messages
+                        <span class="nav-badge" id="msg-badge" style="display:none">0</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Career</div>
+                    <a href="{{ url_for('resume.index') }}" class="nav-link {% if 'resume' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-file-cv"></i></span> Resumes
+                    </a>
+                    <a href="{{ url_for('referral.index') }}" class="nav-link {% if 'referral' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-briefcase"></i></span> Referrals
+                    </a>
+                    <a href="{{ url_for('recommend.index') }}" class="nav-link {% if 'recommend' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-compass"></i></span> Discover
+                    </a>
+                    <a href="{{ url_for('mentorship.index') }}" class="nav-link {% if 'mentorship' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-school"></i></span> 
+                        {% if current_user.role in ['alumni', 'faculty'] %}Mentorship Hub{% else %}Find a Mentor{% endif %}
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <a href="{{ url_for('main.profile') }}" class="nav-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-user-circle"></i></span> Profile
+                    </a>
+                    <a href="{{ url_for('main.settings') }}" class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-settings"></i></span> Settings
+                    </a>
+                </div>
+
+                {% if current_user.role == 'admin' %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Admin</div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-shield"></i></span> Admin Panel
+                    </a>
+                    <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-users-group"></i></span> Users
+                    </a>
+                    <a href="{{ url_for('admin.moderation') }}" class="nav-link {% if request.endpoint == 'admin.moderation' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-eye-check"></i></span> Moderation
+                    </a>
+                    <a href="{{ url_for('admin.audit') }}" class="nav-link {% if request.endpoint == 'admin.audit' %}active{% endif %}">
+                        <span class="nav-icon"><i class="ti ti-list-check"></i></span> Audit Log
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    {{ current_user.profile.full_name[0].upper() if current_user.profile and current_user.profile.full_name else current_user.username[0].upper() }}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">{{ current_user.profile.full_name if current_user.profile and current_user.profile.full_name else current_user.username }}</div>
+                    <div class="user-role">{{ current_user.role }}</div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Logout"><i class="ti ti-logout"></i></a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ti ti-menu-2"></i></button>
+                    <div class="header-title-group">
+                        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                        <span class="header-subtitle">{% block page_subtitle %}{% endblock %}</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <i class="ti ti-search search-icon"></i>
+                        <input type="text" id="global-search" placeholder="Search users, skills..." autocomplete="off">
+                        <div id="search-results" class="dropdown-menu" style="top: 100%; left: 0; min-width: 100%;"></div>
+                    </div>
+                    <div class="notification-bell" id="notif-bell" onclick="toggleNotifications()">
+                        <i class="ti ti-bell"></i>
+                        <span class="badge" id="notif-count" style="display:none">0</span>
+                    </div>
+                    <div class="dropdown">
+                        <div class="user-avatar" onclick="this.parentElement.querySelector('.dropdown-menu').classList.toggle('show')" style="cursor:pointer">
+                            {{ current_user.profile.full_name[0].upper() if current_user.profile and current_user.profile.full_name else current_user.username[0].upper() }}
+                        </div>
+                        <div class="dropdown-menu">
+                            <a href="{{ url_for('main.profile') }}" class="dropdown-item"><i class="ti ti-user-circle"></i> Profile</a>
+                            <a href="{{ url_for('main.settings') }}" class="dropdown-item"><i class="ti ti-settings"></i> Settings</a>
+                            <a href="{{ url_for('auth.logout') }}" class="dropdown-item" style="color: var(--danger)"><i class="ti ti-logout"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% else %}
+    {% block public_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}" onclick="this.remove()">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Notification panel -->
+    <div id="notif-panel" class="notif-panel" style="display:none;">
+        <div class="notif-panel-header">
+            <span>Notifications</span>
+            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('notif-panel').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div id="notif-list"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/timezone.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(el => {
+                el.style.animation = 'slide-in-right 0.3s ease reverse';
+                setTimeout(() => el.remove(), 300);
+            });
+        }, 5000);
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+    </script>
+</body>
+</html>

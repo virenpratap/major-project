@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Feed{% endblock %}
+{% block page_title %}Feed{% endblock %}
+{% block page_subtitle %}Stay connected with your network{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/feed.css') }}">{% endblock %}
+{% block content %}
+<div class="two-col">
+    <div>
+        <!-- Scope Tabs -->
+        <div class="feed-tabs">
+            <button class="feed-tab active" data-scope="global" onclick="switchScope('global')">
+                <i class="ti ti-world"></i> Global
+            </button>
+            <button class="feed-tab" data-scope="department" onclick="switchScope('department')">
+                <i class="ti ti-building"></i> My Department
+            </button>
+        </div>
+
+        <div class="post-composer">
+            <div class="composer-input">
+                <div class="user-avatar">{{ current_user.profile.full_name[0].upper() if current_user.profile and current_user.profile.full_name else current_user.username[0].upper() }}</div>
+                <textarea id="post-content" placeholder="What's on your mind? Use #hashtags to tag topics..." rows="3"></textarea>
+            </div>
+            <div class="composer-actions">
+                <div class="composer-tools">
+                    <select id="post-scope" class="scope-select" title="Post visibility">
+                        <option value="global">🌐 Global</option>
+                        <option value="department">🏫 Department</option>
+                    </select>
+                    <button class="composer-tool" title="Add hashtag"><i class="ti ti-hash"></i></button>
+                </div>
+                <button class="btn btn-primary" onclick="createPost()"><i class="ti ti-send"></i> Post</button>
+            </div>
+        </div>
+        <div id="feed-skeleton">{% for i in range(3) %}<div class="skeleton-card" style="--i:{{i}}"><div class="skeleton-header"><div class="skeleton skeleton-avatar"></div><div class="skeleton-header-text"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line" style="width:30%;height:10px;"></div></div></div><div class="skeleton-body"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium"></div></div><div class="skeleton-actions"><div class="skeleton skeleton-button"></div><div class="skeleton skeleton-button"></div></div></div>{% endfor %}</div>
+        <div id="feed-container" style="display:none;"></div>
+        <div id="load-more" style="text-align:center;padding:var(--space-lg);display:none;"><button class="btn btn-secondary" onclick="loadMore()"><i class="ti ti-chevron-down"></i> Load More</button></div>
+    </div>
+    <div>
+        <div class="card" style="margin-bottom:var(--space-lg);">
+            <div style="text-align:center;">
+                <div class="user-avatar xl" style="margin:0 auto var(--space-md);">{{ current_user.profile.full_name[0].upper() if current_user.profile and current_user.profile.full_name else current_user.username[0].upper() }}</div>
+                <h4>{{ current_user.profile.full_name if current_user.profile and current_user.profile.full_name else current_user.username }}</h4>
+                <span class="badge role-badge-{{ current_user.role }}" style="margin-top:var(--space-xs);">{{ current_user.role }}</span>
+                {% if current_user.profile and current_user.profile.department %}
+                <div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-top:4px;">{{ current_user.profile.department.name }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card"><h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-trending-up" style="color:var(--accent);margin-right:6px;"></i>Trending</h3><div style="font-size:var(--font-size-sm);color:var(--text-muted);"><div style="padding:6px 0;border-bottom:0.5px solid var(--border-light);">#CareerAdvice</div><div style="padding:6px 0;border-bottom:0.5px solid var(--border-light);">#TechJobs</div><div style="padding:6px 0;border-bottom:0.5px solid var(--border-light);">#Networking</div><div style="padding:6px 0;">#AlumniConnect</div></div></div>
+    </div>
+</div>
+
+<style>
+.feed-tabs { display:flex; gap:4px; margin-bottom:var(--space-md); background:var(--bg-card); padding:4px; border-radius:var(--radius-md); border:0.5px solid var(--border-light); }
+.feed-tab { flex:1; padding:10px; border:none; background:transparent; border-radius:var(--radius-sm); cursor:pointer; font-size:var(--font-size-sm); font-weight:600; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; }
+.feed-tab:hover { color:var(--text-primary); background:var(--bg-hover); }
+.feed-tab.active { background:var(--accent); color:white; box-shadow:0 2px 8px rgba(91,75,212,0.3); }
+.scope-select { padding:4px 8px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:var(--font-size-xs); background:var(--bg-page); color:var(--text-secondary); cursor:pointer; }
+</style>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/feed.js') }}"></script>{% endblock %}

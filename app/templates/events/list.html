@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+{% block page_title %}Events & Announcements{% endblock %}
+{% block page_subtitle %}Campus events, meetings, and announcements{% endblock %}
+{% block content %}
+<div class="two-col">
+    <div>
+        <!-- Scope Tabs -->
+        <div class="feed-tabs" style="margin-bottom:var(--space-md);">
+            <button class="feed-tab active" data-scope="upcoming" onclick="switchEvScope('upcoming')"><i class="ti ti-calendar-event"></i> Upcoming</button>
+            <button class="feed-tab" data-scope="past" onclick="switchEvScope('past')"><i class="ti ti-history"></i> Past</button>
+        </div>
+
+        {% if current_user.role in ['admin', 'faculty'] %}
+        <button class="btn btn-primary" style="margin-bottom:var(--space-md);width:100%;" onclick="document.getElementById('create-event-modal').style.display='flex'">
+            <i class="ti ti-plus"></i> Create Event
+        </button>
+        {% endif %}
+
+        <div id="events-list"><p style="color:var(--text-muted);">Loading events...</p></div>
+    </div>
+    <div>
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom:var(--space-md);"><i class="ti ti-filter" style="color:var(--accent);margin-right:6px;"></i>Filter by Type</h3>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('')" style="justify-content:flex-start;">All Types</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('event')" style="justify-content:flex-start;">🎉 Events</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('meeting')" style="justify-content:flex-start;">📋 Meetings</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('webinar')" style="justify-content:flex-start;">💻 Webinars</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('placement_drive')" style="justify-content:flex-start;">🎯 Placements</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('workshop')" style="justify-content:flex-start;">🔧 Workshops</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('hackathon')" style="justify-content:flex-start;">💡 Hackathons</button>
+                <button class="btn btn-sm btn-secondary" onclick="filterEvents('announcement')" style="justify-content:flex-start;">📢 Announcements</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Event Modal -->
+<div id="create-event-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:560px;">
+        <h3 style="margin-bottom:16px;"><i class="ti ti-calendar-plus" style="color:var(--accent);margin-right:8px;"></i>Create Event</h3>
+        <div class="form-group"><label class="form-label">Title *</label><input type="text" id="ev-title" class="form-input" placeholder="Event title" required></div>
+        <div class="form-group"><label class="form-label">Description</label><textarea id="ev-desc" class="form-textarea" rows="3" placeholder="Event details..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label class="form-label">Type</label>
+                <select id="ev-type" class="form-input">
+                    <option value="event">🎉 Event</option>
+                    <option value="meeting">📋 Meeting</option>
+                    <option value="webinar">💻 Webinar</option>
+                    <option value="placement_drive">🎯 Placement Drive</option>
+                    <option value="workshop">🔧 Workshop</option>
+                    <option value="hackathon">💡 Hackathon</option>
+                    <option value="reunion">🤝 Reunion</option>
+                    <option value="announcement">📢 Announcement</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Location</label><input type="text" id="ev-location" class="form-input" placeholder="Room/Venue"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label class="form-label">Start Time</label><input type="datetime-local" id="ev-start" class="form-input"></div>
+            <div class="form-group"><label class="form-label">End Time</label><input type="datetime-local" id="ev-end" class="form-input"></div>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="ev-virtual" onchange="document.getElementById('ev-link-group').style.display=this.checked?'block':'none'">
+            <label for="ev-virtual" style="font-size:var(--font-size-sm);cursor:pointer;">Virtual Event</label>
+        </div>
+        <div class="form-group" id="ev-link-group" style="display:none;">
+            <label class="form-label">Meeting Link</label><input type="url" id="ev-link" class="form-input" placeholder="https://meet.google.com/...">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-secondary" onclick="document.getElementById('create-event-modal').style.display='none'">Cancel</button>
+            <button class="btn btn-primary" onclick="createEvent()">Create Event</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000; }
+.modal-card { background:white;border-radius:16px;padding:24px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+.feed-tabs { display:flex; gap:4px; background:var(--bg-card); padding:4px; border-radius:var(--radius-md); border:0.5px solid var(--border-light); }
+.feed-tab { flex:1; padding:10px; border:none; background:transparent; border-radius:var(--radius-sm); cursor:pointer; font-size:var(--font-size-sm); font-weight:600; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; }
+.feed-tab:hover { color:var(--text-primary); background:var(--bg-hover); }
+.feed-tab.active { background:var(--accent); color:white; }
+.event-card { background:var(--bg-card); border:0.5px solid var(--border-light); border-radius:var(--radius-md); padding:20px; margin-bottom:var(--space-md); transition:all 0.2s; }
+.event-card:hover { border-color:var(--accent); box-shadow:0 4px 12px rgba(91,75,212,0.1); }
+.event-type-badge { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:600; }
+</style>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+let evScope = 'upcoming';
+let evTypeFilter = '';
+
+document.addEventListener('DOMContentLoaded', loadEvents);
+
+function switchEvScope(scope) {
+    evScope = scope;
+    document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`[data-scope="${scope}"]`)?.classList.add('active');
+    loadEvents();
+}
+
+function filterEvents(type) { evTypeFilter = type; loadEvents(); }
+
+async function loadEvents() {
+    const data = await api(`/events/api/list?scope=${evScope}&type=${evTypeFilter}`);
+    const container = document.getElementById('events-list');
+    if (!data || !data.events.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="ti ti-calendar-off"></i></div><h3>No events found</h3></div>';
+        return;
+    }
+
+    const typeEmoji = {event:'🎉',meeting:'📋',webinar:'💻',placement_drive:'🎯',workshop:'🔧',hackathon:'💡',reunion:'🤝',announcement:'📢'};
+    container.innerHTML = data.events.map(e => `
+        <div class="event-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <span class="event-type-badge badge badge-primary">${typeEmoji[e.event_type]||'📅'} ${e.event_type.replace('_',' ')}</span>
+                    <h3 style="margin-top:8px;font-size:1.1rem;">${e.title}</h3>
+                </div>
+                ${e.my_rsvp ? `<span class="badge badge-success">✓ ${e.my_rsvp}</span>` : ''}
+            </div>
+            <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin:8px 0;line-height:1.6;">${e.description}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:var(--font-size-xs);color:var(--text-muted);margin-top:12px;">
+                ${e.start_time ? `<span><i class="ti ti-clock"></i> ${formatIST(e.start_time)}</span>` : ''}
+                ${e.location ? `<span><i class="ti ti-map-pin"></i> ${e.location}</span>` : ''}
+                ${e.is_virtual ? '<span><i class="ti ti-video"></i> Virtual</span>' : ''}
+                <span><i class="ti ti-users"></i> ${e.rsvp_count} attending</span>
+                <span><i class="ti ti-building"></i> ${e.department}</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                ${!e.my_rsvp ? `<button class="btn btn-sm btn-primary" onclick="rsvpEvent(${e.id},'attending')"><i class="ti ti-check"></i> RSVP</button>` : `<button class="btn btn-sm btn-secondary" onclick="rsvpEvent(${e.id},'cancel')">Cancel RSVP</button>`}
+                ${e.is_virtual && e.meeting_link ? `<a href="${e.meeting_link}" target="_blank" class="btn btn-sm btn-secondary"><i class="ti ti-external-link"></i> Join</a>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function rsvpEvent(eventId, status) {
+    const data = await api(`/events/api/${eventId}/rsvp`, {
+        method: 'POST',
+        body: JSON.stringify({ status })
+    });
+    if (data) { showToast(data.message || 'RSVP updated!', 'success'); loadEvents(); }
+}
+
+async function createEvent() {
+    const data = await api('/events/api/create', {
+        method: 'POST',
+        body: JSON.stringify({
+            title: document.getElementById('ev-title').value,
+            description: document.getElementById('ev-desc').value,
+            event_type: document.getElementById('ev-type').value,
+            location: document.getElementById('ev-location').value,
+            start_time: document.getElementById('ev-start').value ? new Date(document.getElementById('ev-start').value).toISOString() : null,
+            end_time: document.getElementById('ev-end').value ? new Date(document.getElementById('ev-end').value).toISOString() : null,
+            is_virtual: document.getElementById('ev-virtual').checked,
+            meeting_link: document.getElementById('ev-link').value
+        })
+    });
+    if (data) {
+        showToast(data.message, 'success');
+        document.getElementById('create-event-modal').style.display = 'none';
+        loadEvents();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*pdf
+*docx
+generate_report.py
+simulate_upload.py
+
+# Database
+instance/
+*.db
+
+# Storage
+storage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+{% block page_subtitle %}Update your personal and professional information{% endblock %}
+{% block content %}
+<div class="settings-container">
+    <div class="settings-grid">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <div class="card p-0 overflow-hidden">
+                <div class="settings-nav">
+                    <a href="#personal" class="settings-nav-item active"><i class="ti ti-user-circle"></i> Personal Info</a>
+                    <a href="#professional" class="settings-nav-item"><i class="ti ti-briefcase"></i> Professional</a>
+                    <a href="#academic" class="settings-nav-item"><i class="ti ti-school"></i> Academic</a>
+                    <a href="#social" class="settings-nav-item"><i class="ti ti-link"></i> Social Links</a>
+                    <a href="#preferences" class="settings-nav-item"><i class="ti ti-settings"></i> Preferences</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Form Area -->
+        <div class="settings-content">
+            <form id="profile-form" method="POST" action="{{ url_for('main.edit_profile') }}">
+                
+                <!-- Profile Picture Section -->
+                <div class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-photo" style="color:var(--accent);margin-right:8px;"></i>Profile Picture</h3>
+                    <div class="avatar-upload-wrapper">
+                        <div class="avatar-preview">
+                            <img id="avatar-img" src="{{ url_for('main.get_avatar', user_id=current_user.id) }}" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name={{ current_user.username }}&background=random'">
+                            <div class="avatar-overlay" onclick="document.getElementById('avatar-input').click()">
+                                <i class="ti ti-camera"></i>
+                                <span>Change</span>
+                            </div>
+                        </div>
+                        <div class="avatar-info">
+                            <p class="text-sm font-600 mb-1">Upload a professional photo</p>
+                            <p class="text-xs text-muted mb-3">WebP, PNG or JPG. Max 5MB. Recommended 256x256.</p>
+                            <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('avatar-input').click()">Choose File</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Info -->
+                <section id="personal" class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-user-circle" style="color:var(--accent);margin-right:8px;"></i>Personal Information</h3>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="first_name" class="form-input" value="{{ current_user.profile.first_name if current_user.profile else '' }}">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="last_name" class="form-input" value="{{ current_user.profile.last_name if current_user.profile else '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" name="full_name" class="form-input" value="{{ current_user.profile.full_name if current_user.profile else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Short Bio</label>
+                        <textarea name="bio" class="form-textarea" rows="3" placeholder="A brief description about yourself...">{{ current_user.profile.bio if current_user.profile else '' }}</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" name="phone" class="form-input" value="{{ current_user.profile.phone if current_user.profile else '' }}">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label">Alt Email</label>
+                            <input type="email" name="alternate_email" class="form-input" value="{{ current_user.profile.alternate_email if current_user.profile else '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Current Location</label>
+                        <input type="text" name="location" class="form-input" value="{{ current_user.profile.location if current_user.profile else '' }}" placeholder="e.g. Bangalore, India">
+                    </div>
+                </section>
+
+                <!-- Professional -->
+                <section id="professional" class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-briefcase" style="color:var(--accent);margin-right:8px;"></i>Professional Details</h3>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Company / Organization</label>
+                            <input type="text" name="company" class="form-input" value="{{ current_user.profile.company if current_user.profile else '' }}">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label">Job Title / Role</label>
+                            <input type="text" name="title" class="form-input" value="{{ current_user.profile.title if current_user.profile else '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Industry</label>
+                        <input type="text" name="industry" class="form-input" value="{{ current_user.profile.industry if current_user.profile else '' }}" placeholder="e.g. Software Development, Fintech">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Skills (Comma separated)</label>
+                        <input type="text" name="skills" class="form-input" value="{{ user_tags|map(attribute='name')|join(', ') }}" placeholder="Python, React, AWS, Machine Learning">
+                    </div>
+                </section>
+
+                <!-- Academic -->
+                <section id="academic" class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-school" style="color:var(--accent);margin-right:8px;"></i>Academic Background</h3>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Graduation Year</label>
+                            <input type="number" name="graduation_year" class="form-input" value="{{ current_user.profile.graduation_year if current_user.profile else '' }}">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label">Specialization</label>
+                            <input type="text" name="specialization" class="form-input" value="{{ current_user.profile.specialization if current_user.profile else '' }}" placeholder="e.g. Cloud Computing">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Social -->
+                <section id="social" class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-link" style="color:var(--accent);margin-right:8px;"></i>Social Presence</h3>
+                    <div class="form-group">
+                        <label class="form-label"><i class="ti ti-brand-linkedin"></i> LinkedIn URL</label>
+                        <input type="url" name="linkedin_url" class="form-input" value="{{ current_user.profile.linkedin_url if current_user.profile else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="ti ti-brand-github"></i> GitHub URL</label>
+                        <input type="url" name="github_url" class="form-input" value="{{ current_user.profile.github_url if current_user.profile else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="ti ti-world"></i> Portfolio / Personal Site</label>
+                        <input type="url" name="portfolio_url" class="form-input" value="{{ current_user.profile.portfolio_url if current_user.profile else '' }}">
+                    </div>
+                </section>
+
+                <!-- Preferences -->
+                <section id="preferences" class="card mb-4">
+                    <h3 class="card-title mb-4"><i class="ti ti-settings" style="color:var(--accent);margin-right:8px;"></i>Preferences</h3>
+                    <div class="toggle-group">
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="font-600">Available for Mentorship</span>
+                                <span class="text-xs text-muted">Allow students to reach out for career guidance</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="is_mentor_available" {{ 'checked' if current_user.profile and current_user.profile.is_mentor_available else '' }}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="font-600">Open to Networking</span>
+                                <span class="text-xs text-muted">Let others send you connection requests</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="is_open_to_connect" {{ 'checked' if current_user.profile and current_user.profile.is_open_to_connect else '' }}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="font-600">Public Profile</span>
+                                <span class="text-xs text-muted">Visible to all registered members</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="is_profile_public" {{ 'checked' if not current_user.profile or current_user.profile.is_profile_public else '' }}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="sticky-save">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="ti ti-device-floppy"></i> Save Changes
+                    </button>
+                    <button type="reset" class="btn btn-secondary btn-lg">Discard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container { max-width: 1000px; margin: 0 auto; }
+.settings-grid { display: grid; grid-template-columns: 240px 1fr; gap: var(--space-xl); align-items: start; }
+.settings-sidebar { position: sticky; top: var(--space-xl); }
+.settings-nav { display: flex; flex-direction: column; }
+.settings-nav-item { padding: 12px 20px; color: var(--text-secondary); text-decoration: none; font-weight: 600; font-size: var(--font-size-sm); display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 3px solid transparent; }
+.settings-nav-item:hover { background: var(--bg-hover); color: var(--accent); }
+.settings-nav-item.active { background: var(--bg-hover); color: var(--accent); border-left-color: var(--accent); }
+.settings-nav-item i { font-size: 1.2rem; }
+
+.form-row { display: flex; gap: var(--space-md); }
+.avatar-upload-wrapper { display: flex; align-items: center; gap: var(--space-xl); }
+.avatar-preview { position: relative; width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 4px solid var(--bg-card); box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; cursor: pointer; }
+.avatar-preview:hover .avatar-overlay { opacity: 1; }
+.avatar-overlay i { font-size: 1.5rem; margin-bottom: 4px; }
+.avatar-overlay span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+.toggle-group { display: flex; flex-direction: column; gap: var(--space-md); }
+.toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-page); border-radius: var(--radius-sm); }
+.toggle-info { display: flex; flex-direction: column; }
+
+/* Switch Slider Styles */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+input:checked + .slider { background-color: var(--accent); }
+input:focus + .slider { box-shadow: 0 0 1px var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+.sticky-save { position: sticky; bottom: var(--space-lg); background: white; padding: 16px 24px; border-radius: var(--radius-md); box-shadow: 0 -10px 30px rgba(0,0,0,0.05); display: flex; gap: var(--space-md); z-index: 10; margin-top: var(--space-xl); border: 1px solid var(--border-light); }
+
+@media (max-width: 768px) {
+    .settings-grid { grid-template-columns: 1fr; }
+    .settings-sidebar { display: none; }
+    .avatar-upload-wrapper { flex-direction: column; text-align: center; }
+}
+</style>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// Auto-scroll logic for settings nav
+document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('href').slice(1);
+        const targetElement = document.getElementById(targetId);
+        window.scrollTo({
+            top: targetElement.offsetTop - 100,
+            behavior: 'smooth'
+        });
+        
+        document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+    });
+});
+
+async function uploadAvatar(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    showToast('Uploading photo...', 'info');
+    
+    try {
+        const response = await fetch('{{ url_for("main.upload_avatar") }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('avatar-img').src = data.url + '?t=' + Date.now();
+            showToast('Profile photo updated!', 'success');
+        } else {
+            showToast(data.error || 'Failed to upload photo', 'error');
+        }
+    } catch (err) {
+        showToast('Network error while uploading', 'error');
+    }
+}
+</script>
+{% endblock %}

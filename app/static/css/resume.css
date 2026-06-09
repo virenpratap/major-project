@@ -1,0 +1,24 @@
+/* ════════ RESUME — Light theme ════════ */
+.upload-zone{border:2px dashed var(--border-color);border-radius:var(--radius-md);padding:var(--space-2xl);text-align:center;cursor:pointer;transition:all var(--transition-base);background:var(--bg-page)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone .upload-icon{font-size:3rem;color:var(--text-muted);margin-bottom:var(--space-md)}
+.upload-zone h3{color:var(--text-secondary);margin-bottom:var(--space-sm)}
+.upload-zone p{color:var(--text-muted);font-size:var(--font-size-sm)}
+.analysis-card{background:var(--bg-card);border:0.5px solid var(--border-color);border-radius:var(--radius-md);padding:var(--space-lg);margin-bottom:var(--space-lg)}
+.score-display{display:flex;align-items:center;gap:var(--space-xl);margin-bottom:var(--space-lg)}
+.score-breakdown{flex:1}
+.score-item{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md)}
+.score-item .label{width:120px;font-size:var(--font-size-sm);color:var(--text-secondary)}
+.score-item .progress-bar{flex:1;height:8px}
+.score-item .value{width:40px;text-align:right;font-size:var(--font-size-sm);font-weight:600}
+.skills-grid{display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-md)}
+.ai-feedback{background:var(--bg-page);border:0.5px solid var(--border-color);border-radius:var(--radius-sm);padding:var(--space-lg);line-height:1.8;font-size:var(--font-size-sm);color:var(--text-secondary);white-space:pre-wrap}
+.resume-list{display:flex;flex-direction:column;gap:var(--space-md)}
+.resume-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--bg-page);border-radius:var(--radius-sm);border:0.5px solid var(--border-color);transition:all var(--transition-fast);cursor:pointer}
+.resume-item:hover{border-color:var(--accent);box-shadow:var(--shadow-sm)}
+.resume-item .file-icon{font-size:1.5rem;color:var(--accent)}
+.resume-item .file-info{flex:1}
+.resume-item .file-name{font-weight:600;font-size:var(--font-size-sm)}
+.resume-item .file-date{font-size:var(--font-size-xs);color:var(--text-muted)}
+.resume-item .file-score{font-size:var(--font-size-lg);font-weight:800}
+.status-pending{color:var(--warning)}.status-processing{color:var(--info)}.status-completed{color:var(--success)}.status-failed{color:var(--danger)}

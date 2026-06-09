@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+{% block page_title %}Chat{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">{% endblock %}
+{% block content %}
+<div style="margin:calc(-1*var(--space-lg)) calc(-1*var(--space-xl));">
+    <div class="chat-area" id="chat-area" style="height:calc(100vh - var(--header-height));">
+        <div class="chat-header">
+            <a href="{{ url_for('chat.inbox') }}" class="btn btn-icon btn-secondary"><i class="ti ti-arrow-left"></i></a>
+            <div class="user-avatar" id="room-avatar">?</div>
+            <div class="chat-header-info"><h3 id="room-name">Loading...</h3><div class="status" id="room-status">Connecting...</div></div>
+        </div>
+        <div class="chat-messages" id="chat-messages">{% for i in range(3) %}<div class="skeleton" style="width:60%;height:40px;border-radius:var(--radius-md);margin-bottom:var(--space-sm);{% if i%2==0 %}align-self:flex-end;{% endif %}"></div>{% endfor %}</div>
+        <div id="typing-area" style="display:none;padding:0 var(--space-lg);"><div class="typing-indicator"><span id="typing-user"></span> is typing<div class="typing-dots"><span></span><span></span><span></span></div></div></div>
+        <div class="chat-input-area"><div class="chat-input-wrapper"><input type="text" id="message-input" placeholder="Type a message..." autocomplete="off"><button class="chat-send-btn" id="send-btn" onclick="sendMessage()"><i class="ti ti-send"></i></button></div></div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>const ROOM_ID="{{ room_id }}";const CURRENT_USER_ID={{ current_user.id }};</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

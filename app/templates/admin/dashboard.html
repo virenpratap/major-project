@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}System overview & controls{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    loadAnalytics();
+});
+
+async function loadAnalytics() {
+    const data = await api('/admin/api/analytics/stats');
+    if (!data) return;
+
+    // 1. Role Distribution (Doughnut)
+    new Chart(document.getElementById('roleChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data.role_dist).map(r => r.charAt(0).toUpperCase() + r.slice(1)),
+            datasets: [{
+                data: Object.values(data.role_dist),
+                backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // 2. Department Breakdown (Bar)
+    new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: {
+            labels: data.dept_breakdown.labels,
+            datasets: [{
+                label: 'Users',
+                data: data.dept_breakdown.counts,
+                backgroundColor: '#5b4bd4'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 3. Registration Trends (Line)
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: data.reg_trends.labels,
+            datasets: [{
+                label: 'New Users',
+                data: data.reg_trends.counts,
+                borderColor: '#8b5cf6',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(139, 92, 246, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+</script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="ti ti-users"></i></div>
+        <div class="stat-content">
+            <span class="stat-val">{{ stats.total_users }}</span>
+            <span class="stat-label">Total Users</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="ti ti-hourglass"></i></div>
+        <div class="stat-content">
+            <span class="stat-val">{{ stats.pending_approvals }}</span>
+            <span class="stat-label">Pending Approval</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="ti ti-calendar-event"></i></div>
+        <div class="stat-content">
+            <span class="stat-val">{{ stats.total_events }}</span>
+            <span class="stat-label">Active Events</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="analytics-grid mb-4">
+    <div class="card chart-container">
+        <h3 class="card-title mb-4">User Distribution</h3>
+        <div style="height:300px;"><canvas id="roleChart"></canvas></div>
+    </div>
+    <div class="card chart-container">
+        <h3 class="card-title mb-4">Departmental Breakdown</h3>
+        <div style="height:300px;"><canvas id="deptChart"></canvas></div>
+    </div>
+    <div class="card chart-container" style="grid-column: 1 / -1;">
+        <h3 class="card-title mb-4">Registration Trends (6 Months)</h3>
+        <div style="height:300px;"><canvas id="trendChart"></canvas></div>
+    </div>
+</div>
+
+<!-- Quick Actions & System Health -->
+<div class="admin-dash-bottom">
+    <div class="card">
+        <h3 class="card-title mb-4"><i class="ti ti-bolt" style="color:var(--accent);margin-right:8px;"></i>Quick Actions</h3>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('admin.users', approval='pending') }}" class="btn btn-sm btn-warning">Approve Users</a>
+            <a href="{{ url_for('events.index') }}" class="btn btn-sm btn-primary">Create Event</a>
+            <a href="{{ url_for('admin.batches') }}" class="btn btn-sm btn-secondary">Manage Batches</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3 class="card-title mb-4"><i class="ti ti-activity" style="color:var(--accent);margin-right:8px;"></i>System Logs</h3>
+        <div class="log-list">
+            <p class="text-xs text-muted">No critical issues detected. System performing normally.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); }
+.chart-container { min-height: 400px; padding: 24px; }
+.admin-dash-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+.stat-card { background: white; padding: 20px; border-radius: var(--radius-md); border: 0.5px solid var(--border-light); display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.stat-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+.stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+.stat-icon.green { background: #f0fdf4; color: #10b981; }
+.stat-val { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+@media (max-width: 992px) {
+    .analytics-grid, .admin-dash-bottom { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Mentorship Dashboard{% endblock %}
+{% block page_title %}Mentorship Hub{% endblock %}
+{% block page_subtitle %}Manage your mentorship requests and guide the next generation{% endblock %}
+{% block content %}
+<div class="mentorship-dashboard">
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card-mini">
+                <div class="stat-mini-icon blue"><i class="ti ti-users"></i></div>
+                <div>
+                    <div class="stat-mini-val" id="total-mentees-count">0</div>
+                    <div class="stat-mini-label">Total Mentees</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card-mini">
+                <div class="stat-mini-icon amber"><i class="ti ti-hourglass"></i></div>
+                <div>
+                    <div class="stat-mini-val" id="pending-requests-count">0</div>
+                    <div class="stat-mini-label">Pending Requests</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card-mini">
+                <div class="stat-mini-icon purple"><i class="ti ti-message-dots"></i></div>
+                <div>
+                    <div class="stat-mini-val" id="active-mentorships-count">0</div>
+                    <div class="stat-mini-label">Active Mentorships</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="card p-0 overflow-hidden">
+        <div class="tabs-nav border-bottom-light">
+            <button class="tab-btn active" onclick="switchMentorTab('pending')">Pending Requests</button>
+            <button class="tab-btn" onclick="switchMentorTab('active')">Active Mentees</button>
+            <button class="tab-btn" onclick="switchMentorTab('history')">History</button>
+        </div>
+
+        <div id="mentorship-list" class="mentorship-list-container">
+            <div class="loading-state p-5 text-center">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Request Detail Modal -->
+<div id="request-detail-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <div class="d-flex align-items-center gap-4 mb-4">
+            <div id="student-avatar" class="user-avatar lg"></div>
+            <div>
+                <h3 id="student-name">Student Name</h3>
+                <p id="student-info" class="text-xs text-muted"></p>
+            </div>
+        </div>
+        <div class="request-message-box mb-4">
+            <h4 class="text-xs text-muted uppercase mb-2">Message</h4>
+            <p id="request-message" class="text-sm"></p>
+        </div>
+        <div class="rejection-box mb-4" id="rejection-input-box" style="display:none;">
+            <label class="form-label">Reason for rejection (optional)</label>
+            <textarea id="rejection-reason" class="form-textarea" rows="2" placeholder="e.g. Schedule is currently full."></textarea>
+        </div>
+        <div class="modal-actions d-flex gap-2 justify-content-end">
+            <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+            <div id="pending-actions">
+                <button class="btn btn-danger" onclick="showRejectionInput()">Reject</button>
+                <button class="btn btn-primary" id="confirm-approve-btn">Accept Request</button>
+            </div>
+            <div id="rejection-actions" style="display:none;">
+                <button class="btn btn-secondary" onclick="hideRejectionInput()">Back</button>
+                <button class="btn btn-danger" id="confirm-reject-btn">Confirm Reject</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card-mini { display: flex; align-items: center; gap: 16px; padding: 20px; }
+.stat-mini-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.stat-mini-icon.blue { background: #eff6ff; color: #3b82f6; }
+.stat-mini-icon.amber { background: #fffbeb; color: #f59e0b; }
+.stat-mini-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+.stat-mini-val { font-size: 1.25rem; font-weight: 800; line-height: 1; }
+.stat-mini-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+.tabs-nav { display: flex; padding: 0 16px; background: #f8fafc; }
+.tab-btn { padding: 16px 24px; border: none; background: none; font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab-btn:hover { color: var(--accent); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.mentorship-list-container { min-height: 300px; }
+.mentorship-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
+.mentorship-item:hover { background: #f8fafc; }
+.mentorship-item:last-child { border-bottom: none; }
+.student-meta { display: flex; align-items: center; gap: 16px; }
+.student-details { display: flex; flex-direction: column; }
+.student-name { font-weight: 700; color: var(--text-primary); }
+.student-sub { font-size: 11px; color: var(--text-muted); }
+
+.request-message-box { background: #f1f5f9; padding: 16px; border-radius: 12px; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-card { background: white; border-radius: 20px; padding: 30px; max-width: 450px; width: 90%; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allRequests = [];
+let activeTab = 'pending';
+let currentRequest = null;
+
+document.addEventListener('DOMContentLoaded', loadRequests);
+
+async function loadRequests() {
+    const data = await api('/mentorship/api/my-requests');
+    if (!data) return;
+    allRequests = data;
+    updateStats();
+    renderList();
+}
+
+function updateStats() {
+    const pending = allRequests.filter(r => r.status === 'pending').length;
+    const active = allRequests.filter(r => r.status === 'accepted').length;
+    document.getElementById('pending-requests-count').textContent = pending;
+    document.getElementById('active-mentorships-count').textContent = active;
+    document.getElementById('total-mentees-count').textContent = active;
+}
+
+function switchMentorTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('onclick').includes(tab));
+    });
+    renderList();
+}
+
+function renderList() {
+    const container = document.getElementById('mentorship-list');
+    let filtered = [];
+    
+    if (activeTab === 'pending') {
+        filtered = allRequests.filter(r => r.status === 'pending');
+    } else if (activeTab === 'active') {
+        filtered = allRequests.filter(r => r.status === 'accepted');
+    } else {
+        filtered = allRequests.filter(r => ['rejected', 'completed'].includes(r.status));
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-5 text-center text-muted"><p>No ${activeTab} mentorships found.</p></div>`;
+        return;
+    }
+
+    container.innerHTML = filtered.map(r => `
+        <div class="mentorship-item">
+            <div class="student-meta">
+                <div class="user-avatar" style="background-image: url('${r.student_avatar}')">${!r.student_avatar ? r.student_name[0] : ''}</div>
+                <div class="student-details">
+                    <span class="student-name">${r.student_name}</span>
+                    <span class="student-sub">${r.student_title} • ${r.student_dept}</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-xs text-muted">${formatISTShort(r.created_at)}</span>
+                ${r.status === 'pending' ? 
+                    `<button class="btn btn-sm btn-primary" onclick="openRequestDetail(${r.id})">Review Request</button>` : 
+                    `<button class="btn btn-sm btn-secondary" onclick="window.location.href='/profile/${r.student_id}'">View Profile</button>`}
+            </div>
+        </div>
+    `).join('');
+}
+
+function openRequestDetail(id) {
+    currentRequest = allRequests.find(r => r.id === id);
+    document.getElementById('student-name').textContent = currentRequest.student_name;
+    document.getElementById('student-info').textContent = `${currentRequest.student_title} • ${currentRequest.student_dept}`;
+    document.getElementById('student-avatar').style.backgroundImage = `url('${currentRequest.student_avatar}')`;
+    document.getElementById('request-message').textContent = currentRequest.message;
+    
+    document.getElementById('pending-actions').style.display = 'block';
+    document.getElementById('rejection-actions').style.display = 'none';
+    document.getElementById('rejection-input-box').style.display = 'none';
+    
+    document.getElementById('request-detail-modal').style.display = 'flex';
+}
+
+function hideModal() {
+    document.getElementById('request-detail-modal').style.display = 'none';
+}
+
+function showRejectionInput() {
+    document.getElementById('pending-actions').style.display = 'none';
+    document.getElementById('rejection-actions').style.display = 'block';
+    document.getElementById('rejection-input-box').style.display = 'block';
+}
+
+function hideRejectionInput() {
+    document.getElementById('pending-actions').style.display = 'block';
+    document.getElementById('rejection-actions').style.display = 'none';
+    document.getElementById('rejection-input-box').style.display = 'none';
+}
+
+document.getElementById('confirm-approve-btn').onclick = async () => {
+    const data = await api(`/mentorship/api/request/${currentRequest.id}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'accepted' })
+    });
+    if (data) {
+        showToast('Request accepted! Connection created.', 'success');
+        hideModal();
+        loadRequests();
+    }
+};
+
+document.getElementById('confirm-reject-btn').onclick = async () => {
+    const reason = document.getElementById('rejection-reason').value;
+    const data = await api(`/mentorship/api/request/${currentRequest.id}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'rejected', reason })
+    });
+    if (data) {
+        showToast('Request rejected.', 'info');
+        hideModal();
+        loadRequests();
+    }
+};
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+/* ════════ SKELETON LOADERS — Light theme ════════ */
+.skeleton{background:linear-gradient(90deg,#F0EEF5 0%,#E5E3F0 40%,#F0EEF5 100%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:var(--radius-sm)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-card{background:white;border:0.5px solid var(--border-color);border-radius:var(--radius-md);padding:var(--space-lg);margin-bottom:var(--space-md)}
+.skeleton-avatar{width:40px;height:40px;border-radius:var(--radius-full)}
+.skeleton-line{height:14px;margin-bottom:var(--space-sm);border-radius:var(--radius-sm)}
+.skeleton-line.short{width:40%}.skeleton-line.medium{width:70%}.skeleton-line.long{width:100%}
+.skeleton-header{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-md)}
+.skeleton-header-text{flex:1}
+.skeleton-body{margin-bottom:var(--space-md)}
+.skeleton-actions{display:flex;gap:var(--space-md)}
+.skeleton-button{width:80px;height:32px;border-radius:var(--radius-sm)}
+.skeleton-chat-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);margin-bottom:var(--space-sm)}
+.skeleton-chat-content{flex:1}

@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Referrals{% endblock %}{% block page_title %}Referral Pipeline{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}<div class="card"><div id="admin-referrals-content"><div class="skeleton-card"><div class="skeleton skeleton-line long"></div></div></div></div>{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Discover{% endblock %}
+{% block page_title %}Discover{% endblock %}
+{% block page_subtitle %}People, jobs & mentors matched to you{% endblock %}
+{% block content %}
+<div class="tabs">
+    <button class="tab active" onclick="loadTab('all',this)">All</button>
+    <button class="tab" onclick="loadTab('jobs',this)"><i class="ti ti-briefcase"></i> Jobs</button>
+    <button class="tab" onclick="loadTab('people',this)"><i class="ti ti-users-group"></i> People</button>
+    <button class="tab" onclick="loadTab('mentors',this)"><i class="ti ti-award"></i> Mentors</button>
+</div>
+<div id="rec-skeleton">{% for i in range(4) %}<div class="skeleton-card" style="--i:{{i}}"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium"></div></div>{% endfor %}</div>
+<div id="rec-content" style="display:none;"><div id="rec-jobs" class="stats-grid"></div><div id="rec-people" class="stats-grid"></div><div id="rec-mentors" class="stats-grid"></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let currentTab='all';
+function loadTab(type,btn){currentTab=type;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(btn)btn.classList.add('active');loadRecommendations(type)}
+async function loadRecommendations(type){document.getElementById('rec-skeleton').style.display='block';document.getElementById('rec-content').style.display='none';const r=await fetch(`/recommend/api/suggestions?type=${type}`);const data=await r.json();document.getElementById('rec-skeleton').style.display='none';document.getElementById('rec-content').style.display='block';
+const jobsDiv=document.getElementById('rec-jobs');jobsDiv.style.display=(type==='all'||type==='jobs')?'grid':'none';if(data.jobs){jobsDiv.innerHTML=data.jobs.length?data.jobs.map(j=>`<div class="card"><h4>${j.title}</h4><p style="color:var(--text-muted);font-size:var(--font-size-sm);">${j.company} · ${j.location||'Remote'}</p><div style="margin-top:var(--space-sm);">${(j.matching_skills||[]).map(s=>`<span class="tag">${s}</span>`).join(' ')}</div><div style="margin-top:var(--space-md);"><span class="badge badge-info">Match: ${Math.round(j.score*100)}%</span></div></div>`).join(''):'<div class="empty-state"><div class="empty-icon"><i class="ti ti-briefcase"></i></div><h3>No job recommendations yet</h3></div>'}
+const peopleDiv=document.getElementById('rec-people');peopleDiv.style.display=(type==='all'||type==='people')?'grid':'none';if(data.people){peopleDiv.innerHTML=data.people.length?data.people.map(p=>`<div class="card" style="cursor:pointer" onclick="window.location='/profile/${p.id}'"><div style="display:flex;align-items:center;gap:var(--space-md);"><div class="user-avatar">${p.name?p.name[0].toUpperCase():'?'}</div><div><h4>${p.name||p.username}</h4><span class="badge role-badge-${p.role}">${p.role}</span></div></div><div style="margin-top:var(--space-sm);font-size:var(--font-size-xs);color:var(--text-muted);">${p.shared_tags} shared interests</div></div>`).join(''):'<div class="empty-state"><div class="empty-icon"><i class="ti ti-users"></i></div><h3>No people recommendations yet</h3></div>'}
+const mentorsDiv=document.getElementById('rec-mentors');mentorsDiv.style.display=(type==='all'||type==='mentors')?'grid':'none';if(data.mentors){mentorsDiv.innerHTML=data.mentors.length?data.mentors.map(m=>`<div class="card" style="cursor:pointer" onclick="window.location='/profile/${m.id}'"><div style="display:flex;align-items:center;gap:var(--space-md);"><div class="user-avatar">${m.name?m.name[0].toUpperCase():'?'}</div><div><h4>${m.name||m.username}</h4><div style="font-size:var(--font-size-xs);color:var(--text-muted);">${m.title||''}${m.company?' @ '+m.company:''}</div></div></div></div>`).join(''):'<div class="empty-state"><div class="empty-icon"><i class="ti ti-award"></i></div><h3>No mentor recommendations yet</h3></div>'}}
+loadTab('all',document.querySelector('.tab.active'));
+</script>
+{% endblock %}

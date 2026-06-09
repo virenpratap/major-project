@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}System Jobs{% endblock %}{% block page_title %}System Jobs Queue{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}<div class="card"><div class="filter-bar"><select class="form-select" id="job-status-filter" onchange="loadJobsQueue()"><option value="">All</option><option value="pending">Pending</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="failed">Failed</option></select></div><table class="data-table"><thead><tr><th>Event</th><th>Status</th><th>Retries</th><th>Error</th><th>Created</th></tr></thead><tbody id="jobs-tbody"></tbody></table></div>{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script><script>loadJobsQueue();</script>{% endblock %}

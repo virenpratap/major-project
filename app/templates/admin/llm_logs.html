@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}LLM Logs{% endblock %}{% block page_title %}LLM Usage Logs{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}<div class="card"><table class="data-table"><thead><tr><th>Prompt</th><th>Response</th><th>Tokens</th><th>Time</th><th>Date</th></tr></thead><tbody id="llm-tbody"></tbody></table><div class="pagination" id="llm-pagination"></div></div>{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script><script>loadLLMLogs();</script>{% endblock %}

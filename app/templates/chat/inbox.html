@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages{% endblock %}
+{% block page_subtitle %}Stay in touch{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">{% endblock %}
+{% block content %}
+<div class="chat-layout" style="margin:calc(-1*var(--space-lg)) calc(-1*var(--space-xl));">
+    <div class="chat-sidebar" id="chat-sidebar">
+        <div class="chat-sidebar-header"><h2><i class="ti ti-message-2" style="font-size:1rem;margin-right:6px;color:var(--accent);"></i>Chats</h2><button class="btn btn-sm btn-primary" onclick="showNewChatModal()"><i class="ti ti-plus"></i> New</button></div>
+        <div class="chat-search"><input type="text" placeholder="Search conversations..." id="chat-search-input"></div>
+        <div id="conv-skeleton">{% for i in range(5) %}<div class="skeleton-chat-item"><div class="skeleton skeleton-avatar"></div><div class="skeleton-chat-content"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line medium" style="height:10px;"></div></div></div>{% endfor %}</div>
+        <div class="conversation-list" id="conversation-list" style="display:none;"></div>
+    </div>
+    <div class="chat-area" id="chat-area"><div class="chat-empty"><div class="empty-icon"><i class="ti ti-message-circle"></i></div><h3>Select a conversation</h3><p style="color:var(--text-muted);font-size:var(--font-size-sm);">Choose a chat from the sidebar or start a new one</p></div></div>
+</div>
+<div id="new-chat-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="card" style="width:400px;max-width:90vw;"><div class="card-header"><h3 class="card-title">New Message</h3><button class="btn btn-icon btn-secondary" onclick="document.getElementById('new-chat-modal').style.display='none'"><i class="ti ti-x"></i></button></div><div class="form-group"><label class="form-label">Search user</label><input type="text" id="new-chat-search" class="form-input" placeholder="Type a username..." oninput="searchChatUser(this.value)"><div id="new-chat-results" style="margin-top:var(--space-sm);"></div></div></div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/chat.js') }}"></script>{% endblock %}

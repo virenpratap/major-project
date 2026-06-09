@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Audit Log{% endblock %}{% block page_title %}Audit Log{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block content %}<div class="card"><table class="data-table"><thead><tr><th>Actor</th><th>Action</th><th>Target</th><th>Time</th></tr></thead><tbody id="audit-tbody"></tbody></table><div class="pagination" id="audit-pagination"></div></div>{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script><script>loadAuditLogs();</script>{% endblock %}

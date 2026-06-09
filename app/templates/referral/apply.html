@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Career Opportunities{% endblock %}
+{% block page_title %}Career & Referrals{% endblock %}
+{% block page_subtitle %}Discover opportunities and track your referral applications{% endblock %}
+{% block content %}
+<div class="referral-page">
+    <!-- Tabs Navigation -->
+    <div class="tabs mb-4">
+        <button class="tab-btn active" onclick="switchTab('jobs')"><i class="ti ti-briefcase"></i> Explore Jobs</button>
+        <button class="tab-btn" onclick="switchTab('applications')"><i class="ti ti-history"></i> My Applications</button>
+    </div>
+
+    <!-- Jobs Tab -->
+    <div id="jobs-tab" class="tab-content active">
+        <div class="search-bar mb-4">
+            <input type="text" id="job-search" class="form-input" placeholder="Search by title, company, or skills..." onkeyup="filterJobs()">
+        </div>
+        <div id="jobs-list" class="jobs-grid">
+            <!-- Jobs will be loaded here -->
+            <div class="loading-state py-5 text-center">
+                <div class="spinner"></div>
+                <p class="text-sm text-muted mt-3">Fetching opportunities...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Applications Tab -->
+    <div id="applications-tab" class="tab-content">
+        <div id="my-applications" class="applications-list">
+            <!-- Applications will be loaded here -->
+            <div class="loading-state py-5 text-center">
+                <div class="spinner"></div>
+                <p class="text-sm text-muted mt-3">Loading your applications...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Detail Modal -->
+<div id="detail-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card wide">
+        <div class="modal-header d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h2 id="modal-job-title" class="mb-1">Job Title</h2>
+                <p id="modal-company" class="text-muted font-600">Company Name</p>
+            </div>
+            <button class="btn-close" onclick="hideModal()"><i class="ti ti-x"></i></button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Status Stepper -->
+            <div class="status-stepper mb-5">
+                <div class="step" id="step-applied">
+                    <div class="step-circle"><i class="ti ti-check"></i></div>
+                    <span class="step-label">Applied</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-selected">
+                    <div class="step-circle"><i class="ti ti-award"></i></div>
+                    <span class="step-label">Shortlisted</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-referred">
+                    <div class="step-circle"><i class="ti ti-external-link"></i></div>
+                    <span class="step-label">Referred</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-interviewing">
+                    <div class="step-circle"><i class="ti ti-message-dots"></i></div>
+                    <span class="step-label">Interview</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step-hired">
+                    <div class="step-circle"><i class="ti ti-confetti"></i></div>
+                    <span class="step-label">Result</span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="info-section mb-4">
+                        <h4 class="text-xs text-muted uppercase mb-2">AI Matching Insights</h4>
+                        <div id="matching-insights" class="insights-box">
+                            <!-- Insights here -->
+                        </div>
+                    </div>
+                    <div id="referral-message-section" class="info-section mb-4" style="display:none;">
+                        <h4 class="text-xs text-muted uppercase mb-2">Referral Message</h4>
+                        <div class="referral-message-box">
+                            <p id="referral-message-text" class="text-sm italic"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light border-none">
+                        <h4 class="text-xs text-muted uppercase mb-3">Next Steps</h4>
+                        <div id="next-steps-info" class="text-sm">
+                            <!-- Next steps logic here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-md); }
+.job-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid var(--border-light); transition: all 0.2s; }
+.job-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+.job-main { margin-bottom: 16px; }
+.job-badge { background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+.job-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-top: 8px; }
+.job-meta { display: flex; gap: 12px; font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+.job-skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+
+.applications-list { display: flex; flex-direction: column; gap: var(--space-md); }
+.app-card { background: white; border-radius: 12px; padding: 16px 24px; border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+.app-info { display: flex; align-items: center; gap: 20px; }
+.app-status-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
+.status-applied { background: #f1f5f9; color: #64748b; }
+.status-selected { background: #fef3c7; color: #92400e; }
+.status-referred { background: #e0e7ff; color: #3730a3; }
+.status-interviewing { background: #dcfce7; color: #166534; }
+.status-hired { background: #10b981; color: white; }
+
+/* Stepper */
+.status-stepper { display: flex; align-items: center; justify-content: space-between; position: relative; }
+.step { display: flex; flex-direction: column; align-items: center; z-index: 2; position: relative; }
+.step-circle { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 8px; transition: all 0.3s; border: 2px solid #e2e8f0; }
+.step-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+.step-line { flex: 1; height: 3px; background: #f1f5f9; margin: 0 -20px; margin-top: -22px; position: relative; z-index: 1; }
+
+.step.active .step-circle { background: var(--accent); color: white; border-color: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px rgba(91,75,212,0.3); }
+.step.active .step-label { color: var(--accent); }
+.step.completed .step-circle { background: #10b981; color: white; border-color: #10b981; }
+.step.completed .step-label { color: #10b981; }
+.step-line.completed { background: #10b981; }
+
+.modal-card.wide { max-width: 800px; }
+.insights-box { background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; }
+.referral-message-box { background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 20px; color: #92400e; line-height: 1.6; }
+
+@media (max-width: 768px) {
+    .status-stepper { flex-direction: column; gap: 20px; height: 400px; align-items: flex-start; }
+    .step-line { width: 3px; height: 40px; margin: -10px 0; margin-left: 18px; }
+}
+</style>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/referral.js') }}"></script>
+{% endblock %}

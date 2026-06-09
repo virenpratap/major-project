@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Resume Analysis{% endblock %}
+{% block page_title %}Resume Analysis{% endblock %}
+{% block page_subtitle %}AI-powered insights{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/resume.css') }}">{% endblock %}
+{% block content %}
+{% if resume %}
+{% if resume.status == 'completed' %}{% set analysis = resume.analysis %}
+<div class="analysis-card"><div class="score-display"><div class="score-circle {% if resume.score >= 70 %}high{% elif resume.score >= 40 %}medium{% else %}low{% endif %}">{{ resume.score|int }}</div><div><h2>{{ resume.filename }}</h2><p style="color:var(--text-muted);font-size:var(--font-size-sm);">Analyzed on {{ resume.created_at.strftime('%B %d, %Y') }}{% if analysis.get('word_count') %} · {{ analysis.word_count }} words{% endif %}</p></div></div>
+    <div class="score-breakdown">{% set sections = analysis.get('sections_found', []) | length %}{% set skills_count = analysis.get('skills', []) | length %}
+        <div class="score-item"><span class="label">Sections</span><div class="progress-bar"><div class="progress-fill" style="width:{{ (sections/8*100)|int }}%"></div></div><span class="value">{{ sections }}/8</span></div>
+        <div class="score-item"><span class="label">Skills Found</span><div class="progress-bar"><div class="progress-fill" style="width:{{ (skills_count/15*100)|int }}%"></div></div><span class="value">{{ skills_count }}</span></div>
+        <div class="score-item"><span class="label">Experience</span><div class="progress-bar"><div class="progress-fill" style="width:{{ (analysis.get('experience_years',0)/5*100)|int }}%"></div></div><span class="value">{{ analysis.get('experience_years',0) }}y</span></div>
+    </div>
+</div>
+{% if analysis.get('skills') %}<div class="analysis-card"><h3 style="margin-bottom:var(--space-md);"><i class="ti ti-code" style="color:var(--accent);margin-right:6px;"></i>Skills Detected</h3><div class="skills-grid">{% for skill in analysis.skills %}<span class="tag">{{ skill }}</span>{% endfor %}</div></div>{% endif %}
+{% if analysis.get('sections_missing') %}<div class="analysis-card"><h3 style="margin-bottom:var(--space-md);"><i class="ti ti-alert-triangle" style="color:var(--warning);margin-right:6px;"></i>Missing Sections</h3><div class="skills-grid">{% for section in analysis.sections_missing[:5] %}<span class="badge badge-warning">{{ section }}</span>{% endfor %}</div></div>{% endif %}
+{% if analysis.get('ai_feedback') %}<div class="analysis-card"><h3 style="margin-bottom:var(--space-md);"><i class="ti ti-sparkles" style="color:var(--accent);margin-right:6px;"></i>AI Feedback</h3><div class="ai-feedback">{{ analysis.ai_feedback }}</div></div>{% endif %}
+{% elif resume.status in ('pending', 'processing') %}
+<div class="card" style="text-align:center;padding:var(--space-2xl);"><div class="spinner" style="margin:0 auto var(--space-md);"></div><h3>Analyzing your resume...</h3><p style="color:var(--text-muted);font-size:var(--font-size-sm);">This typically takes 10-30 seconds</p></div>
+<script>const pollInterval=setInterval(async()=>{const r=await fetch('/resume/api/{{ resume.id }}/status');const d=await r.json();if(d.status==='completed'||d.status==='failed'){clearInterval(pollInterval);location.reload()}},3000);</script>
+{% endif %}
+{% else %}
+<div class="card" style="text-align:center;padding:var(--space-2xl);"><div class="empty-icon"><i class="ti ti-alert-circle"></i></div><h3>{{ error or 'Resume not found' }}</h3><a href="{{ url_for('resume.index') }}" class="btn btn-primary mt-3">Back to Resumes</a></div>
+{% endif %}
+{% endblock %}

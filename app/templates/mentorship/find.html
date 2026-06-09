@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Find a Mentor{% endblock %}
+{% block page_title %}Find a Mentor{% endblock %}
+{% block page_subtitle %}Connect with alumni for career guidance and support{% endblock %}
+{% block content %}
+<div class="mentorship-page">
+    <!-- Search Filters -->
+    <div class="card mb-4">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label class="form-label text-xs">Industry</label>
+                <input type="text" id="filter-industry" class="form-input" placeholder="e.g. Technology, Finance" onkeyup="if(event.key==='Enter')searchMentors()">
+            </div>
+            <div class="filter-group">
+                <label class="form-label text-xs">Department</label>
+                <select id="filter-dept" class="form-input" onchange="searchMentors()">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="form-label text-xs">Skills</label>
+                <input type="text" id="filter-skill" class="form-input" placeholder="e.g. Python, Marketing" onkeyup="if(event.key==='Enter')searchMentors()">
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary w-100" onclick="searchMentors()"><i class="ti ti-search"></i> Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mentors Grid -->
+    <div id="mentors-grid" class="mentor-grid">
+        <!-- Skeleton Loading -->
+        {% for i in range(4) %}
+        <div class="skeleton-card mentor-skeleton">
+            <div class="skeleton skeleton-avatar mb-3" style="width:80px;height:80px;margin:0 auto;"></div>
+            <div class="skeleton skeleton-line short mb-2" style="margin:0 auto;"></div>
+            <div class="skeleton skeleton-line medium mb-4" style="margin:0 auto;"></div>
+            <div class="skeleton skeleton-button w-100"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="load-more-container" class="text-center mt-5" style="display:none;">
+        <button class="btn btn-secondary" onclick="loadMore()">Load More Mentors</button>
+    </div>
+</div>
+
+<!-- Request Mentorship Modal -->
+<div id="request-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <div class="text-center mb-4">
+            <div id="modal-avatar" class="user-avatar xl mb-3" style="margin:0 auto;"></div>
+            <h3 id="modal-name">Request Mentorship</h3>
+            <p id="modal-headline" class="text-xs text-muted"></p>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Why do you want mentorship from this person? *</label>
+            <textarea id="request-message" class="form-textarea" rows="4" placeholder="Briefly introduce yourself and your goals..."></textarea>
+        </div>
+        <div class="modal-info mb-4">
+            <i class="ti ti-info-circle"></i>
+            <span>Mentors appreciate specific questions and clear goals.</span>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+            <button class="btn btn-primary" id="submit-request-btn">Send Request</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 160px; gap: var(--space-md); align-items: flex-end; }
+.mentor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-lg); }
+.mentor-card { background: white; border-radius: 16px; padding: 24px; text-align: center; border: 1px solid var(--border-light); transition: all 0.3s; position: relative; overflow: hidden; }
+.mentor-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(91,75,212,0.1); }
+.mentor-card .user-avatar { width: 80px; height: 80px; margin: 0 auto 16px; border: 3px solid #f1f5f9; }
+.mentor-name { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+.mentor-title { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 2px; }
+.mentor-company { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+.mentor-dept { font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 16px; }
+.mentor-skills { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 20px; }
+.mini-skill { font-size: 10px; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-card { background: white; border-radius: 20px; padding: 30px; max-width: 480px; width: 90%; }
+.modal-info { background: #eff6ff; color: #1e40af; padding: 10px 14px; border-radius: 8px; font-size: 12px; display: flex; gap: 8px; align-items: center; }
+
+@media (max-width: 768px) { .filter-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let loading = false;
+let selectedMentorId = null;
+
+document.addEventListener('DOMContentLoaded', searchMentors);
+
+async function searchMentors() {
+    if (loading) return;
+    loading = true;
+    currentPage = 1;
+    
+    const industry = document.getElementById('filter-industry').value;
+    const deptId = document.getElementById('filter-dept').value;
+    const skill = document.getElementById('filter-skill').value;
+    
+    const query = new URLSearchParams({ industry, department_id: deptId, skill, page: currentPage });
+    
+    const data = await api(`/mentorship/api/search?${query}`);
+    const grid = document.getElementById('mentors-grid');
+    
+    if (!data || data.mentors.length === 0) {
+        grid.innerHTML = '<div class="empty-state py-5" style="grid-column: 1/-1;"><div class="empty-icon">🤝</div><h3>No mentors found</h3><p>Try broadening your search criteria.</p></div>';
+        document.getElementById('load-more-container').style.display = 'none';
+        loading = false;
+        return;
+    }
+
+    grid.innerHTML = data.mentors.map(m => renderMentorCard(m)).join('');
+    document.getElementById('load-more-container').style.display = data.pages > 1 ? 'block' : 'none';
+    loading = false;
+}
+
+async function loadMore() {
+    if (loading) return;
+    loading = true;
+    currentPage++;
+    
+    const industry = document.getElementById('filter-industry').value;
+    const deptId = document.getElementById('filter-dept').value;
+    const skill = document.getElementById('filter-skill').value;
+    const query = new URLSearchParams({ industry, department_id: deptId, skill, page: currentPage });
+    
+    const data = await api(`/mentorship/api/search?${query}`);
+    const grid = document.getElementById('mentors-grid');
+    
+    if (data && data.mentors) {
+        data.mentors.forEach(m => {
+            grid.insertAdjacentHTML('beforeend', renderMentorCard(m));
+        });
+        document.getElementById('load-more-container').style.display = currentPage < data.pages ? 'block' : 'none';
+    }
+    loading = false;
+}
+
+function renderMentorCard(m) {
+    return `
+        <div class="mentor-card">
+            <div class="user-avatar" style="background-image: url('${m.avatar}')">
+                ${!m.avatar ? m.name[0] : ''}
+            </div>
+            <div class="mentor-name">${m.name}</div>
+            <div class="mentor-title">${m.title || 'Professional'}</div>
+            <div class="mentor-company">${m.company || ''}</div>
+            <div class="mentor-dept">${m.department}</div>
+            <div class="mentor-skills">
+                ${m.skills.map(s => `<span class="mini-skill">${s}</span>`).join('')}
+            </div>
+            <button class="btn btn-primary w-100" onclick="openRequestModal(${m.id}, '${m.name}', '${m.title || ''}', '${m.company || ''}')">
+                <i class="ti ti-message-plus"></i> Request Mentorship
+            </button>
+        </div>
+    `;
+}
+
+function openRequestModal(id, name, title, company) {
+    selectedMentorId = id;
+    document.getElementById('modal-name').textContent = `Request Mentorship from ${name}`;
+    document.getElementById('modal-headline').textContent = `${title} ${company ? 'at ' + company : ''}`;
+    document.getElementById('modal-avatar').textContent = name[0];
+    document.getElementById('request-modal').style.display = 'flex';
+}
+
+function hideModal() {
+    document.getElementById('request-modal').style.display = 'none';
+    document.getElementById('request-message').value = '';
+}
+
+document.getElementById('submit-request-btn').onclick = async () => {
+    const message = document.getElementById('request-message').value.trim();
+    if (!message) {
+        showToast('Please enter a message', 'error');
+        return;
+    }
+
+    const data = await api('/mentorship/api/request', {
+        method: 'POST',
+        body: JSON.stringify({ mentor_id: selectedMentorId, message })
+    });
+
+    if (data) {
+        showToast(data.message, 'success');
+        hideModal();
+    }
+};
+</script>
+{% endblock %}

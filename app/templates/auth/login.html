@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block public_content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="brand-logo">AN</div>
+                <h2>AlumniNet</h2>
+                <p>Connect with alumni, discover career opportunities, and build meaningful professional relationships — all powered by AI intelligence.</p>
+                <div class="auth-brand-stats">
+                    <div class="stat"><div class="stat-num">2K+</div><div class="stat-lbl">Alumni</div></div>
+                    <div class="stat"><div class="stat-num">500+</div><div class="stat-lbl">Referrals</div></div>
+                    <div class="stat"><div class="stat-num">98%</div><div class="stat-lbl">Match Rate</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form-side">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="logo">AN</div>
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to your alumni network</p>
+                </div>
+                <form class="auth-form" method="POST">
+                    <div class="form-group"><label class="form-label" for="email">Email Address</label><input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required></div>
+                    <div class="form-group"><label class="form-label" for="password">Password</label><input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required></div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="remember" name="remember" style="accent-color:var(--accent)"><label for="remember" style="font-size:var(--font-size-sm);color:var(--text-muted);cursor:pointer">Remember me</label></div>
+                    <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Sign In</button>
+                </form>
+                <div class="auth-footer">Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
