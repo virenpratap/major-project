@@ -33,11 +33,8 @@ AI/NLP:
 
 ## Installation Steps
 
-1. Clone the repository
-
-2. Install dependencies:
+1. Install dependencies:
 pip install -r requirements.txt
 
-3. Run the project:
+2. Run the project:
 python run.py
-
